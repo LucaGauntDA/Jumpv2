@@ -118,11 +118,10 @@ const App: React.FC = () => {
       onContextMenu={(e) => e.preventDefault()}
     >
       {/* The main containment box - everything is relative to this */}
-      {/* Sized to 92% of viewport to guarantee visibility and clean margins */}
       <div 
-        className="relative shadow-2xl overflow-hidden bg-black ring-1 ring-white/10 rounded-lg"
+        className="relative shadow-2xl overflow-hidden bg-black ring-1 ring-white/5"
         style={{ 
-          width: 'min(92vw, calc(92vh * 1.5))', 
+          width: 'min(100vw, calc(100vh * 1.5))', 
           aspectRatio: '1200 / 800' 
         }}
       >
@@ -136,16 +135,15 @@ const App: React.FC = () => {
 
         {/* HUD - Strictly inside the box */}
         {gameState.gameStarted && !gameState.gameOver && (
-          <div className="absolute top-12 left-0 right-0 flex flex-col items-center pointer-events-none z-10">
-            <div className="text-7xl font-black tracking-tighter text-white opacity-30 select-none">
-              {gameState.score}
-            </div>
+          <div className="absolute top-8 left-0 right-0 flex flex-col items-center pointer-events-none z-10">
+            <div className="text-6xl font-black tracking-tighter text-white opacity-80">{gameState.score}</div>
+            <div className="text-[10px] uppercase tracking-[0.4em] text-white/40 font-bold mt-1">Distance</div>
           </div>
         )}
 
         {/* Overlays - Strictly inside the box */}
         {(!gameState.gameStarted || gameState.gameOver) && (
-          <div className="absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center z-50 p-8 text-white">
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center z-50 p-8 text-white">
             <h1 className="text-7xl font-black italic tracking-tighter mb-2">
               JUMP <span className="text-blue-500">V2</span>
             </h1>
@@ -159,7 +157,7 @@ const App: React.FC = () => {
                 </div>
               ) : (
                 <div className="text-center">
-                   <div className="text-white/20 font-bold uppercase tracking-widest text-[10px] mb-4">Click Play to start</div>
+                   <div className="text-white/20 font-bold uppercase tracking-widest text-[10px] mb-2">Ready to jump?</div>
                    <div className="flex items-center justify-center">
                       <div className="w-14 h-14 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center text-white/80">
                         {gameState.selectedCharacter === 'triangle' && <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l9 16H3z"/></svg>}
@@ -190,23 +188,36 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* Controls - Invisible hit areas strictly inside the box */}
+        {/* Controls - Strictly inside the box */}
         {gameState.gameStarted && !gameState.gameOver && (
           <>
             <div 
-              className="absolute left-0 top-0 bottom-0 w-1/3 z-20 cursor-pointer"
+              className={`absolute left-0 top-0 bottom-0 w-1/4 flex items-end p-8 transition-colors cursor-pointer z-20 ${input.left ? 'bg-white/5' : ''}`}
               onPointerDown={onLeftStart}
               onPointerUp={onLeftEnd}
               onPointerCancel={onLeftEnd}
               onPointerLeave={onLeftEnd}
-            />
+            >
+              <div className={`w-16 h-16 border rounded-full flex items-center justify-center transition-all ${input.left ? 'border-white/60 bg-white/10 scale-110' : 'border-white/5'}`}>
+                <svg className={`w-6 h-6 transition-opacity ${input.left ? 'opacity-80' : 'opacity-10'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </div>
+            </div>
+
             <div 
-              className="absolute right-0 top-0 bottom-0 w-1/3 z-20 cursor-pointer"
+              className={`absolute right-0 top-0 bottom-0 w-1/4 flex items-end justify-end p-8 transition-colors cursor-pointer z-20 ${input.right ? 'bg-white/5' : ''}`}
               onPointerDown={onRightStart}
               onPointerUp={onRightEnd}
               onPointerCancel={onRightEnd}
               onPointerLeave={onRightEnd}
-            />
+            >
+              <div className={`w-16 h-16 border rounded-full flex items-center justify-center transition-all ${input.right ? 'border-white/60 bg-white/10 scale-110' : 'border-white/5'}`}>
+                <svg className={`w-6 h-6 transition-opacity ${input.right ? 'opacity-80' : 'opacity-10'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </div>
+            </div>
           </>
         )}
       </div>
