@@ -31,7 +31,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ input, onScoreUpdate, onGameOve
   const lastMonsterYRef = useRef(0);
   const lastHoleYRef = useRef(0);
   
-  // Sucking animation state
+  // Sucking animation state (Final capture)
   const suckingHoleIdRef = useRef<string | null>(null);
   const suckProgressRef = useRef<number>(0);
   const suckPlayerStartPos = useRef<{x: number, y: number} | null>(null);
@@ -73,12 +73,11 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ input, onScoreUpdate, onGameOve
   const particlesRef = useRef<Particle[]>([]);
   const cameraYRef = useRef(0);
   const maxScoreRef = useRef(0);
-  // Fix: Initialize useRef with null to provide the required 1 argument and avoid 'Expected 1 arguments, but got 0' error.
   const requestRef = useRef<number | null>(null);
   const isDeadRef = useRef(false);
 
   const createHole = (y: number): Hole => {
-    const radius = 50 + Math.random() * 30;
+    const radius = 40 + Math.random() * 25; // Slightly smaller range for better avoidability
     const x = radius + Math.random() * (GAME_WIDTH - radius * 2);
     return {
       id: Math.random().toString(36).substr(2, 9),
@@ -239,28 +238,20 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ input, onScoreUpdate, onGameOve
     const player = playerRef.current;
     const currentInput = inputRef.current;
     
-    // Sucking Animation Logic
+    // Final Sucking Animation Logic
     if (suckingHoleIdRef.current) {
       const hole = holesRef.current.find(h => h.id === suckingHoleIdRef.current);
       if (hole) {
         suckProgressRef.current = Math.min(suckProgressRef.current + 0.02, 1);
-        
-        // Circular spiral pull
         const startX = suckPlayerStartPos.current!.x;
         const startY = suckPlayerStartPos.current!.y;
-        
-        // Linear interpolation toward center with a spiral offset
         const spiralAngle = suckProgressRef.current * Math.PI * 4;
         const spiralRadius = (1 - suckProgressRef.current) * 50;
-        
         player.x = startX + (hole.x - startX - player.width/2) * suckProgressRef.current + Math.cos(spiralAngle) * spiralRadius;
         player.y = startY + (hole.y - startY - player.height/2) * suckProgressRef.current + Math.sin(spiralAngle) * spiralRadius;
-
-        if (suckProgressRef.current >= 1) {
-          onGameOver();
-        }
+        if (suckProgressRef.current >= 1) onGameOver();
       }
-      return; // Skip normal physics when being sucked
+      return; 
     }
 
     if (!isDeadRef.current) {
@@ -343,7 +334,16 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ input, onScoreUpdate, onGameOve
             const dx = (player.x + player.width / 2) - h.x;
             const dy = (player.y + player.height / 2) - h.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance < h.radius * 0.85) {
+            
+            // Magnetic Pull Logic: if within 2x radius, apply a subtle force
+            if (distance < h.radius * 2.2) {
+                const pullStrength = (1 - (distance / (h.radius * 2.2))) * 0.18;
+                player.vx += (h.x - (player.x + player.width/2)) * pullStrength;
+                player.vy += (h.y - (player.y + player.height/2)) * pullStrength;
+            }
+
+            // Lethal collision: tighter radius to allow for skilled evasion
+            if (distance < h.radius * 0.7) {
                 isDeadRef.current = true;
                 suckingHoleIdRef.current = h.id;
                 suckPlayerStartPos.current = { x: player.x, y: player.y };
@@ -457,27 +457,35 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ input, onScoreUpdate, onGameOve
 
   const drawHole = (ctx: CanvasRenderingContext2D, h: Hole, camY: number) => {
     const drawY = h.y - camY;
-    const pulse = Math.sin(h.pulsePhase) * 5;
+    const pulse = Math.sin(h.pulsePhase) * 4;
     const radius = h.radius + pulse;
 
     ctx.save();
-    ctx.shadowBlur = 30;
-    ctx.shadowColor = 'rgba(255, 255, 255, 0.2)';
     
-    const grad = ctx.createRadialGradient(h.x, drawY, radius * 0.2, h.x, drawY, radius);
+    // Draw Attraction Zone Ring
+    ctx.beginPath();
+    ctx.arc(h.x, drawY, h.radius * 2.2, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(255, 255, 255, ${0.05 + Math.sin(h.pulsePhase * 0.5) * 0.02})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.shadowBlur = 30;
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.15)';
+    
+    const grad = ctx.createRadialGradient(h.x, drawY, radius * 0.1, h.x, drawY, radius);
     grad.addColorStop(0, '#000000');
-    grad.addColorStop(0.7, '#1f2937');
-    grad.addColorStop(1, '#9ca3af');
+    grad.addColorStop(0.6, '#111827');
+    grad.addColorStop(1, '#374151');
 
     ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.arc(h.x, drawY, radius, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(h.x, drawY, radius * 0.9, 0, Math.PI * 2);
+    ctx.arc(h.x, drawY, radius * 0.95, 0, Math.PI * 2);
     ctx.stroke();
 
     ctx.restore();
@@ -559,7 +567,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ input, onScoreUpdate, onGameOve
     ctx.save();
     ctx.globalAlpha = opacity;
     ctx.translate(centerX, centerY);
-    // Rapid rotation if being sucked
     const rotation = isSucking ? suckProgressRef.current * Math.PI * 10 : player.vx * 0.02;
     ctx.rotate(rotation);
     ctx.scale(scale, scale);
@@ -662,9 +669,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ input, onScoreUpdate, onGameOve
     if (!ctx) return;
 
     const camY = cameraYRef.current;
-
     drawBackground(ctx, camY);
-
     holesRef.current.forEach(h => drawHole(ctx, h, camY));
 
     platformsRef.current.forEach(p => {
