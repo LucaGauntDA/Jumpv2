@@ -118,10 +118,11 @@ const App: React.FC = () => {
       onContextMenu={(e) => e.preventDefault()}
     >
       {/* The main containment box - everything is relative to this */}
+      {/* Sized to 92% of viewport to guarantee visibility and clean margins */}
       <div 
-        className="relative shadow-2xl overflow-hidden bg-black ring-1 ring-white/5"
+        className="relative shadow-2xl overflow-hidden bg-black ring-1 ring-white/10 rounded-lg"
         style={{ 
-          width: 'min(100vw, calc(100vh * 1.5))', 
+          width: 'min(92vw, calc(92vh * 1.5))', 
           aspectRatio: '1200 / 800' 
         }}
       >
@@ -136,7 +137,7 @@ const App: React.FC = () => {
         {/* HUD - Strictly inside the box */}
         {gameState.gameStarted && !gameState.gameOver && (
           <div className="absolute top-12 left-0 right-0 flex flex-col items-center pointer-events-none z-10">
-            <div className="text-7xl font-black tracking-tighter text-white opacity-40 select-none">
+            <div className="text-7xl font-black tracking-tighter text-white opacity-30 select-none">
               {gameState.score}
             </div>
           </div>
