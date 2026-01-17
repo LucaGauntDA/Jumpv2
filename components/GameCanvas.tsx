@@ -73,7 +73,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ input, onScoreUpdate, onGameOve
   const particlesRef = useRef<Particle[]>([]);
   const cameraYRef = useRef(0);
   const maxScoreRef = useRef(0);
-  const requestRef = useRef<number>();
+  // Fix: Initialize useRef with null to provide the required 1 argument and avoid 'Expected 1 arguments, but got 0' error.
+  const requestRef = useRef<number | null>(null);
   const isDeadRef = useRef(false);
 
   const createHole = (y: number): Hole => {
@@ -729,10 +730,10 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ input, onScoreUpdate, onGameOve
       initGame();
       requestRef.current = requestAnimationFrame(animate);
     } else {
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      if (requestRef.current !== null) cancelAnimationFrame(requestRef.current);
     }
     return () => {
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      if (requestRef.current !== null) cancelAnimationFrame(requestRef.current);
     };
   }, [isStarted, animate, initGame]);
 
