@@ -4,7 +4,11 @@ import GameCanvas from './components/GameCanvas';
 import { GameState, CharacterType } from './types';
 import { GAME_WIDTH, GAME_HEIGHT } from './constants';
 
-const CHARACTERS: CharacterType[] = ['triangle', 'square', 'circle', 'diamond', 'star', 'hexagon', 'ghost', 'robot'];
+const OTHER_CHARACTERS: CharacterType[] = ['triangle', 'square', 'circle', 'diamond', 'star', 'hexagon', 'ghost', 'robot'];
+
+const getRandomCharacter = (): CharacterType => {
+  return Math.random() < 0.5 ? 'duck' : OTHER_CHARACTERS[Math.floor(Math.random() * OTHER_CHARACTERS.length)];
+};
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>({
@@ -38,8 +42,7 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    const randomChar = CHARACTERS[Math.floor(Math.random() * CHARACTERS.length)];
-    setGameState(prev => ({ ...prev, selectedCharacter: randomChar }));
+    setGameState(prev => ({ ...prev, selectedCharacter: getRandomCharacter() }));
   }, []);
 
   const handleScoreUpdate = useCallback((newScore: number) => {
@@ -68,13 +71,12 @@ const App: React.FC = () => {
 
   const startGame = () => {
     initAudio();
-    const randomChar = CHARACTERS[Math.floor(Math.random() * CHARACTERS.length)];
     setGameState(prev => ({ 
       ...prev, 
       gameStarted: true, 
       gameOver: false, 
       score: 0,
-      selectedCharacter: randomChar
+      selectedCharacter: getRandomCharacter()
     }));
   };
 
@@ -168,6 +170,15 @@ const App: React.FC = () => {
                         {gameState.selectedCharacter === 'hexagon' && <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l8.66 5v10L12 22l-8.66-5V7z"/></svg>}
                         {gameState.selectedCharacter === 'ghost' && <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a8 8 0 00-8 8v12l3-3 3 3 3-3 3 3 3-3 3 3V10a8 8 0 00-8-8z"/></svg>}
                         {gameState.selectedCharacter === 'robot' && <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 8a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H8a2 2 0 01-2-2V8zm6-6v4m-4-2h8"/></svg>}
+                        {gameState.selectedCharacter === 'duck' && (
+                          <svg className="w-12 h-12" viewBox="0 0 100 100">
+                            {/* Detailed Colored Duck Icon */}
+                            <path d="M20,70 Q20,100 55,100 Q90,100 90,75 Q90,60 75,55 Q65,55 60,45 Q75,40 75,25 Q75,10 60,10 Q45,10 45,25 Q45,35 50,45 Q40,48 30,55 Q20,60 20,70" fill="#FFD700" />
+                            <path d="M35,32 Q30,35 45,38 Q50,42 45,45 Q65,42 65,35 Q65,30 35,32" fill="#FF8C00" />
+                            <circle cx="55" cy="22" r="4" fill="white" />
+                            <circle cx="56" cy="22" r="1.5" fill="black" />
+                          </svg>
+                        )}
                       </div>
                    </div>
                 </div>

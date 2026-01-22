@@ -395,11 +395,77 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ input, onScoreUpdate, onGameOve
     ctx.rotate(isSucking ? suckProgressRef.current * Math.PI * 10 : player.vx * 0.02);
     ctx.scale(scale, scale);
     ctx.translate(-(pX + w/2), -(pY + h/2));
-    ctx.shadowBlur = 25; ctx.shadowColor = COLORS.player; ctx.fillStyle = COLORS.player;
+    ctx.shadowBlur = 25; ctx.shadowColor = player.character === 'duck' ? 'rgba(255, 215, 0, 0.4)' : COLORS.player; ctx.fillStyle = COLORS.player;
+    
     switch (player.character) {
       case 'triangle': ctx.beginPath(); ctx.moveTo(pX + w/2, pY); ctx.lineTo(pX + w, pY + h); ctx.lineTo(pX, pY + h); ctx.closePath(); ctx.fill(); break;
       case 'square': ctx.fillRect(pX, pY, w, h); break;
       case 'circle': ctx.beginPath(); ctx.arc(pX + w/2, pY + h/2, w/2, 0, Math.PI * 2); ctx.fill(); break;
+      case 'duck':
+        const dir = player.vx >= 0 ? 1 : -1;
+        ctx.save();
+        ctx.translate(pX + w/2, pY + h/2);
+        ctx.scale(dir, 1);
+        ctx.translate(-(pX + w/2), -(pY + h/2));
+        
+        // Exact high-fidelity Colored Rubber Duck drawing
+        // Body (Yellow)
+        ctx.fillStyle = "#FFD700";
+        ctx.beginPath();
+        ctx.moveTo(pX + w * 0.2, pY + h * 0.7);
+        ctx.bezierCurveTo(pX + w * 0.2, pY + h * 1.0, pX + w * 0.55, pY + h * 1.0, pX + w * 0.9, pY + h * 1.0); // Base
+        ctx.bezierCurveTo(pX + w * 1.05, pY + h * 0.95, pX + w * 1.15, pY + h * 0.75, pX + w * 1.05, pY + h * 0.65); // Tail tip
+        ctx.bezierCurveTo(pX + w * 0.9, pY + h * 0.6, pX + w * 0.7, pY + h * 0.6, pX + w * 0.75, pY + h * 0.55); // Back to neck
+        ctx.bezierCurveTo(pX + w * 0.85, pY + h * 0.45, pX + w * 0.85, pY + h * 0.25, pX + w * 0.75, pY + h * 0.15); // Back of head
+        ctx.bezierCurveTo(pX + w * 0.65, pY + h * 0.05, pX + w * 0.45, pY + h * 0.05, pX + w * 0.4, pY + h * 0.25); // Top of head
+        ctx.bezierCurveTo(pX + w * 0.35, pY + h * 0.4, pX + w * 0.4, pY + h * 0.5, pX + w * 0.5, pY + h * 0.55); // Forehead to neck
+        ctx.bezierCurveTo(pX + w * 0.4, pY + h * 0.55, pX + w * 0.2, pY + h * 0.6, pX + w * 0.2, pY + h * 0.7); // Chest
+        ctx.closePath();
+        ctx.fill();
+
+        // Beak (Orange)
+        ctx.fillStyle = "#FF8C00";
+        ctx.beginPath();
+        ctx.moveTo(pX + w * 0.4, pY + h * 0.32);
+        ctx.bezierCurveTo(pX + w * 0.1, pY + h * 0.32, pX + w * 0.1, pY + h * 0.42, pX + w * 0.35, pY + h * 0.42); // Upper beak
+        ctx.bezierCurveTo(pX + w * 0.45, pY + h * 0.48, pX + w * 0.45, pY + h * 0.42, pX + w * 0.5, pY + h * 0.42); // Corner of mouth
+        ctx.bezierCurveTo(pX + w * 0.35, pY + h * 0.48, pX + w * 0.4, pY + h * 0.48, pX + w * 0.4, pY + h * 0.42); // Lower beak lip
+        ctx.closePath();
+        ctx.fill();
+
+        // Eye (White)
+        ctx.fillStyle = "white";
+        ctx.beginPath();
+        ctx.arc(pX + w * 0.55, pY + h * 0.22, w * 0.08, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Pupil (Black)
+        ctx.fillStyle = "black";
+        ctx.beginPath();
+        ctx.arc(pX + w * 0.56, pY + h * 0.22, w * 0.04, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+        break;
+      case 'ghost': 
+        ctx.beginPath(); ctx.arc(pX + w/2, pY + h*0.4, w/2, Math.PI, 0); 
+        ctx.lineTo(pX + w, pY + h); ctx.lineTo(pX + w*0.8, pY + h*0.8); ctx.lineTo(pX + w*0.6, pY + h);
+        ctx.lineTo(pX + w*0.4, pY + h*0.8); ctx.lineTo(pX + w*0.2, pY + h); ctx.lineTo(pX, pY + h); ctx.closePath(); ctx.fill(); 
+        break;
+      case 'robot':
+        ctx.strokeRect(pX + w*0.2, pY + h*0.3, w*0.6, h*0.6); ctx.fillRect(pX + w*0.35, pY + h*0.45, w*0.1, h*0.1); ctx.fillRect(pX + w*0.55, pY + h*0.45, w*0.1, h*0.1);
+        ctx.fillRect(pX + w*0.3, pY + h*0.7, w*0.4, h*0.05); ctx.moveTo(pX + w/2, pY + h*0.3); ctx.lineTo(pX + w/2, pY + h*0.1); ctx.stroke();
+        break;
+      case 'star':
+        const cx = pX + w/2; const cy = pY + h/2; const spikes = 5; const outerRadius = w/2; const innerRadius = w/4;
+        ctx.beginPath(); for(let i=0; i<spikes*2; i++){ const r = i%2===0 ? outerRadius : innerRadius; const a = (i/spikes)*Math.PI - Math.PI/2; ctx.lineTo(cx + Math.cos(a)*r, cy + Math.sin(a)*r); } ctx.closePath(); ctx.fill();
+        break;
+      case 'diamond':
+        ctx.beginPath(); ctx.moveTo(pX + w/2, pY); ctx.lineTo(pX + w, pY + h/2); ctx.lineTo(pX + w/2, pY + h); ctx.lineTo(pX, pY + h/2); ctx.closePath(); ctx.fill();
+        break;
+      case 'hexagon':
+        ctx.beginPath(); for(let i=0; i<6; i++){ const a = (i/6)*Math.PI*2 - Math.PI/2; ctx.lineTo(pX + w/2 + Math.cos(a)*w/2, pY + h/2 + Math.sin(a)*h/2); } ctx.closePath(); ctx.fill();
+        break;
       default: ctx.fillRect(pX, pY, w, h);
     }
     ctx.restore();

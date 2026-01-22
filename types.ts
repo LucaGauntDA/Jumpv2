@@ -1,6 +1,6 @@
 
 export type PlatformType = 'normal' | 'moving' | 'fragile' | 'boost';
-export type CharacterType = 'triangle' | 'square' | 'circle' | 'diamond' | 'star' | 'hexagon' | 'ghost' | 'robot';
+export type CharacterType = 'triangle' | 'square' | 'circle' | 'diamond' | 'star' | 'hexagon' | 'ghost' | 'robot' | 'duck';
 export type MonsterType = 'standard' | 'stalker' | 'giant' | 'wobbler';
 
 export interface Platform {
